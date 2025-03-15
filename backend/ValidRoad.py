@@ -5,7 +5,7 @@ from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog
 from matplotlib.path import Path
-from EstimateDepth import evaluateDepth 
+from EstimateDepth import evaluateDepth
 import torch
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
@@ -13,7 +13,8 @@ import numpy as np
 import  cv2
 from ImageData import ImageData
 class ValidRoad:
-    def __init__(self,image) -> None:
+    def __init__(self,image,displayPhoto) -> None:
+        self.displayPhoto=displayPhoto
         self.image=image
         self.intializeModel()
         self.evaluateResults()
@@ -33,7 +34,6 @@ class ValidRoad:
     def createTriangleMask(self,image_data):
         triangle_vertices = image_data.getTriangleVertices()
         triangle_path = Path(triangle_vertices)
-        #print(triangle_path)
         x = np.arange(0, image_data.image_width)
         y = np.arange(0, image_data.image_height)
         xx, yy = np.meshgrid(x, y)
@@ -41,7 +41,7 @@ class ValidRoad:
         inside = triangle_path.contains_points(self.points)
         triangle_mask = inside.reshape(self.panoptic_seg_np.shape)
         return triangle_mask
-    
+
     def checkTheBiggestThingInsideMask(self,mask,array_to_check):
         values_inside_Mask=array_to_check[mask]
         unique_colors, counts = np.unique(values_inside_Mask, axis=0, return_counts=True)
@@ -55,7 +55,6 @@ class ValidRoad:
                 if(percentage_occurrence>the_biggest_objectSurface and not percentage_occurrence==0):
                     the_biggest_object=result[0]
                     the_biggest_objectSurface=percentage_occurrence
-        #jezeli zwraca -1 znaczy ze nie ma zadnego obiektu przed nim
         return the_biggest_object,the_biggest_objectSurface
     def detectThingsOnsides(self,leftMask,rightMask):
         left_biggest_object,essa=self.checkTheBiggestThingInsideMask(leftMask,self.panoptic_seg_np)
@@ -79,9 +78,9 @@ class ValidRoad:
         else:
             print("nie ma nic przed tobą")
             return None
-     
-       
-    
+
+
+
     def personDistanceV1(self,the_biggest_object,the_biggest_objectSurface):
         distance="daleko"
         if(not the_biggest_object==-1):
@@ -93,32 +92,32 @@ class ValidRoad:
                 distance="blisko"
             elif(the_biggest_objectSurface>50):
                 distance="bardzo blisko"
-    
+
             biggest_objectName=self.metadata.thing_classes[the_biggest_object["category_id"]]
             print("masz "+distance+" do "+biggest_objectName)
         else:
             print("nie masz nic przed sobą")
-    
+
     def createMask(self,vertices):
         path = Path(vertices)
         insidee = path.contains_points(self.points)
         mask = insidee.reshape(self.panoptic_seg_np.shape)
         return mask
-    
+
     def checkValidSurfacesInsideMask(self,mask,image_array):
         value_inside_mask=image_array[mask]
         unique_colors, counts = np.unique(value_inside_mask, axis=0, return_counts=True)
         count_ofPixels=value_inside_mask.shape[0]
         info_arr=[]
         self.objects_name=[]
-    
+
         for object_id,occurrance in zip(unique_colors,counts):
 
             percentage_occurrence=(occurrance/count_ofPixels)*100
             if(not object_id==0):
                 result = [item for item in self.segments_info if item["id"] == object_id][0]
                 object_catID=result["category_id"]
-    
+
             #chodnik 44 ulica 21 trawa 46 drzewa 37
                 if(not result["isthing"] and object_catID in {44,21,46,37}):
                     name=self.metadata.stuff_classes[object_catID]
@@ -127,13 +126,13 @@ class ValidRoad:
                     name=self.metadata.thing_classes[object_catID]
                     self.objects_name.append(name)
 
-                
 
-    
+
+
         return info_arr
-    
-    
-    
+
+
+
     def CollectEveryMaskSurfaceStats(self,image_data,image_array):
         vertices_array=image_data.getAllRectangleVertices()
         rectangles_info_array=[]
@@ -141,25 +140,24 @@ class ValidRoad:
             info_array= self.checkValidSurfacesInsideMask(self.createMask(a),image_array)
             rectangles_info_array.append(info_array)
         return rectangles_info_array
-    
-       # analyzeResults(rectangles_info_array)
-    
+
+
     def analyzeResults(self,info_array):
-    
+
         surfaces=[]
-    
+
         for a in range(4):
-    
+
             surfaces.append(self.checkSurfacesInsideBox(info_array[a]))
         if(surfaces[1]=="pavement" and surfaces[2]=="pavement"):
             return ("You are walking on pavement")
-    
+
         elif(surfaces[1]=="pavement" and surfaces[2]=="road"):
             if(surfaces[0]=="pavement"):
                 return ("On your right is the road, move a little to the left")
             elif(surfaces[0]=="road"):
                 return ("Take a few steps to the left")
-    
+
         elif(surfaces[1]=="road" and surfaces[2]=="pavement"):
             if(surfaces[3]=="pavement"):
                 return ("On your left is the road, move a little to the right!")
@@ -167,10 +165,8 @@ class ValidRoad:
                 return ("Take a few steps to the left")
         else:
             return ("Step back! the road is in front of you")
-    
-      #  if(data_array[1][1]>60 and data_array[2][1] > 60):
-      #      print("jest na chodniku")
-    
+
+
     def checkSurfacesInsideBox(self,box):
         pavement_occurance=0
         road_occurance=0
@@ -213,7 +209,7 @@ class ValidRoad:
         plt.axis('off')  # Ukryj osie
         plt.show()
         del main_image_array
-        del self.out 
+        del self.out
     def estimateDanger(self,name):
 
         outdoor_objects = {
@@ -236,10 +232,10 @@ class ValidRoad:
         'horse': 'medium',
         'sheep': 'small',
         'cow': 'small',
-        'elephant': 'danger',  
-        'bear': 'danger',     
-        'zebra': 'small',      
-        'giraffe': 'small',    
+        'elephant': 'danger',
+        'bear': 'danger',
+        'zebra': 'small',
+        'giraffe': 'small',
         }
         if name in outdoor_objects:
             return outdoor_objects[name]
@@ -270,11 +266,10 @@ class ValidRoad:
             triangle_name=self.metadata.thing_classes[the_biggest_object["category_id"]]
             triangle_danger=self.estimateDanger(triangle_name)
 
-        print(triangle_danger+"   "+triangle_name+"  "+str(triangle_distance))
         results_array=self.CollectEveryMaskSurfaceStats(image_data,self.panoptic_seg_np)
         leftMask=self.createMask(image_data.getFirstRectangleVertices())
         rightMask=self.createMask(image_data.getFourthRectangleVertices())
-        #obiekty po bokach 
+        #obiekty po bokach
         objectsOnSides=self.detectThingsOnsides(leftMask,rightMask)
         validRoad=self.analyzeResults(results_array)
         results={
@@ -284,15 +279,13 @@ class ValidRoad:
         triangleresults={
             "ObjectsInfront":{
                 "object":triangle_name,
-                "distance":triangle_distance,
+                "distance":float(triangle_distance),
                 "danger":triangle_danger
             }
         }
         finalAnswerList.append(triangleresults)
-        print(len(objectsOnSides))
         if(len(objectsOnSides)==1):
             if objectsOnSides[0]["side"]=="right":
-                print("prawy")
                 rightObjectName=objectsOnSides[0]["object"]
                 rightObjectDanger=self.estimateDanger(rightObjectName)
                 finalAnswerList.append({
@@ -306,9 +299,7 @@ class ValidRoad:
                     }
                 })
 
-                print("RIght "+"danger: "+rightObjectDanger+" name: "+rightObjectName )
             elif objectsOnSides[0]["side"]=="left":
-                print("lewy")
                 leftObjectName=objectsOnSides[0]["object"]
                 leftObjectDanger= self.estimateDanger(leftObjectName)
                 finalAnswerList.append({
@@ -321,7 +312,6 @@ class ValidRoad:
                         "danger":leftObjectDanger
                     }
                 })
-                print("Left"+"danger: "+leftObjectDanger+" name: "+leftObjectName )
         elif(len(objectsOnSides)==2):
                 rightObjectName=objectsOnSides[0]["object"]
                 rightObjectDanger=self.estimateDanger(rightObjectName)
@@ -339,10 +329,7 @@ class ValidRoad:
                         "danger":leftObjectDanger
                     }
                 })
-                print("RIght "+"danger: "+rightObjectDanger+" name: "+rightObjectName )
-                print("Left"+"danger: "+leftObjectDanger+" name: "+leftObjectName )
         elif(len(objectsOnSides)==0):
-                print("brak")
                 finalAnswerList.append({
                     "ObjectsOnLeft":"none"
                 }
@@ -353,15 +340,15 @@ class ValidRoad:
                 )
 
 
-        print("''''''''''")
-        print(finalAnswerList)
-        self.visualize(the_biggest_object,triangle_distance)
-        v = Visualizer(self.image[:, :, ::-1], MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]), scale=1.2)
-        out = v.draw_panoptic_seg_predictions(self.panoptic_seg.to("cpu"), self.segments_info)
+        if self.displayPhoto:
+            self.visualize(the_biggest_object,triangle_distance)
+            v = Visualizer(self.image[:, :, ::-1], MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]), scale=1.2)
+            out = v.draw_panoptic_seg_predictions(self.panoptic_seg.to("cpu"), self.segments_info)
+
         del image_data
         del self.panoptic_seg
         del self.panoptic_seg_np
-        return out.get_image()[:, :, ::-1]
+        return finalAnswerList
 '''
 #LINIE POMOCNICZE
 def helpLines(self):

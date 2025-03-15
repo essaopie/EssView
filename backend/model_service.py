@@ -31,7 +31,7 @@ def base64ToOpenCvIm(data):
 
 def analyzeimage(baseData):
     im=base64ToOpenCvIm(baseData)
-    valid=ValidRoad(im)
+    valid=ValidRoad(im,False)
     results=valid.start()
     print(results)
     return results
