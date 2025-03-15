@@ -96,7 +96,6 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View>
-      <Button title="Capture Image" onPress={sendCameraData} />
       <CameraView ref={cameraRef} facing="back" style={{ position: 'absolute' }} />
       <FilterOutdoor />
     </View>
