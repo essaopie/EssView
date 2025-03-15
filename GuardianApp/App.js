@@ -41,8 +41,8 @@ function HomeScreen({ navigation }) {
   const notifications = [
     { id: '7', text: 'Camera connection is alive', type: 'success', icon: 'check-circle' },
     { id: '2', text: 'Person is on the left (20m)', type: 'info', icon: 'message' },
-    { id: '3', text: 'Cwel is on the right (20m)', type: 'info', icon: 'message' },
-    { id: '4', text: 'Person is on the left (20m)', type: 'info', icon: 'message' },
+    { id: '3', text: 'Bench is on the right (15m)', type: 'info', icon: 'message' },
+    { id: '4', text: 'Person is on the left (40m)', type: 'info', icon: 'message' },
     { id: '5', text: 'Person is on the left (20m)', type: 'info', icon: 'message' },
     { id: '6', text: 'Car is in front (2m) (1s)', type: 'danger', icon: 'error' }
   ];
