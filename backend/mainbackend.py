@@ -2,97 +2,33 @@ from flask import Flask, render_template, request, jsonify
 import json
 from flask_socketio import SocketIO
 from model_service import analyzeimage
+from flask_cors import CORS
 
 socketio = SocketIO()
 
 app = Flask(__name__)
-socketio = SocketIO(app)
-
-tempArray={
-    1:{
-  "ValidRoad":"pavement",
-  "ObjectsInfront": [{
-    "object":"person",
-    "distance":"2",
-    "danger":"small"
-  }],
-  "ObjectsOnRight": {
-      "object":"person",
-    "distance":"2",
-    "danger":"small"
-  },
-  "ObjectsOnLeft":{
-      "object":"person",
-    "distance":"2",
-    "danger":"small"
-  }
-  },
-      2:{
-  "ValidRoad":"road",
-  "ObjectsInfront": [{
-    "object":"person",
-    "distance":"2",
-    "danger":"small"
-  }],
-  "ObjectsOnRight": {
-      "object":"person",
-    "distance":"2",
-    "danger":"small"
-  },
-  "ObjectsOnLeft":{
-      "object":"person",
-    "distance":"2",
-    "danger":"small"
-  }
-  }
-}
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/stepwidth',methods=["POST"])
-def setStepWidth():
-
-    if request.is_json:
-
-        data = request.get_json()
-        mode = data.get('stepwidth')
-
-        return jsonify({"message": "received"}), 200
-    else:
-        return jsonify({"error": "Request must be JSON"}), 400
-
-@app.route('/try',methods=["POST"])
-def essaop():
-    results=analyzeimage('esa')
-    json_data = json.dumps(results, ensure_ascii=False, indent=4)
-    return results
-@app.route('/mode',methods=["POST"])
-def manageMode():
-
-    if request.is_json:
-
-        data = request.get_json()
-        mode = data.get('mode')
-
-        return jsonify({"message": "received"}), 200
-    else:
-        return jsonify({"error": "Request must be JSON"}), 400
-
+CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 @app.route('/danger',methods=["POST"])
-def sendDanger():
+def sendDangerNotification():
     if request.is_json:
-
         data = request.get_json()
-        mode = data.get('danger')
-
-        return jsonify({"message": "received"}), 200
+        message = data.get('danger')
+        socketio.emit('danger_notification',message)
+        return jsonify({"status":"send"})
     else:
-        return jsonify({"error": "Request must be JSON"}), 400
+        return jsonify({"status":"failed"})
 
-
+@app.route('/message',methods=["POST"])
+def sendMessage():
+    if request.is_json:
+        data = request.get_json()
+        message = data.get('message')
+        socketio.emit('guard_message',message)
+        return jsonify({"status":"send"})
+    else:
+        return jsonify({"status":"failed"})
 
 @socketio.on('connect')
 def handle_connection(data):
@@ -116,12 +52,12 @@ connect - polacz sie
 connect_response - info czy sie polaczyles
 cameriaview - wyslij base64 obrazek
 results - otrzymujesz tempArray ze wszystkimi informacjami
-
+guard_message - wiadomosc od opiekuna ktora odbiera uzytkownik
+danger_notification - wiadomosc ktora otrzymuje guard
 http
-/test [get] pobiera liste ktora dostaniesz pod results dla testu
-/danger [post] wysylasz {dange:"small albo medium albo hard"}
-/stepwidth [post] wysylasz {stepwidth:1.5}
-/mode [post] wysylasz {mode:"indoor albo outdoor albo ocr"}
+/danger [post] wysylasz {danger:"twoj podopieczny dlugo jest na drodze"}
+/message [post] wysylasz {message:"zwroc uwage na obiekty.."}
 
 
 '''
+
