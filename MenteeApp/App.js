@@ -40,14 +40,19 @@ const HomeScreen = ({ navigation }) => {
       console.clear();
       try {
         const parsedData = JSON.parse(data);
+        const validRoad = parsedData[0]?.ValidRoad;
         const frontObject = parsedData[1]?.ObjectsInfront?.object;
         const leftObject = parsedData[2]?.ObjectsOnLeft?.object;
         const rightObject = parsedData[3]?.ObjectsOnRight?.object;
 
         let detectedObject = null;
         let message = '';
+        console.log(parsedData);
 
-        if (frontObject && frontObject !== 'none') {
+        if (validRoad && validRoad !== 'none' && validRoad != 'There is no any specific surface around you') {
+          detectedObject = validRoad;
+          message = validRoad;
+        } else if (frontObject && frontObject !== 'none') {
           detectedObject = frontObject;
           message = frontObject;
         } else if (leftObject && leftObject !== 'none') {
@@ -60,7 +65,7 @@ const HomeScreen = ({ navigation }) => {
 
         if (detectedObject && detectedObject !== lastSpokenObject.current) {
           speak(message);
-          console.log(detectedObject)
+          console.log(detectedObject);
           lastSpokenObject.current = detectedObject; // Update last spoken object
         }
       } catch (error) {
