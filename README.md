@@ -23,6 +23,8 @@ Aby zainstalować projekt, wykonaj poniższe kroki:
 1. **Pobierz niezbędne pakiet**
 
    ```bash
+   python -m venv venv
+   source venv/bin/activate
    cd backend/
    pip install flask_cors
    pip install -r requirements.txt
