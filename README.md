@@ -27,8 +27,9 @@ Aby zainstalować projekt, wykonaj poniższe kroki:
    source venv/bin/activate
    cd backend/
    pip install flask_cors
-   pip install -r requirements.txt
-   pip install numpy opencv-python matplotlib
+   pip install -r backend_requirements.txt
+   pip install --upgrade numpy
+   pip install opencv-python matplotlib
    pip install torch torchvision torchaudio
 2. **Sklonuj repozytorium detectron2**
 
