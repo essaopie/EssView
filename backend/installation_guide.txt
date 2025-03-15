@@ -1,0 +1,7 @@
+git clone https://github.com/facebookresearch/detectron2.git
+pip install numpy opencv-python matplotlib
+pip install torch torchvision torchaudio
+python -m pip install --no-build-isolation -e detectron2
+git clone https://github.com/DepthAnything/Depth-Anything-V2
+cd Depth-Anything-V2
+pip install -r requirements.txt
